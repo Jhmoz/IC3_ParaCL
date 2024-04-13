@@ -8,7 +8,6 @@ import torch.optim as optim
 import os
 from functools import partial
 
-
 def parse_args():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--infor_file", type=str, default=r'../data/Tag_CLData.json', help='summary所在的json文件')
@@ -27,6 +26,17 @@ def parse_args():
     parser.add_argument("--hard_negative_weight",type=float, default=0, help='给每个困难负例增加权重，提高任务难度')
     args = parser.parse_args()
     return args
+
+
+def init_seeds(seed,cuda_deterministic=True):
+    torch.manual_seed(seed)
+    # Speed-reproducibility tradeoff https://pytorch.org/docs/stable/notes/randomness.html
+    if cuda_deterministic:  # slower, more reproducible
+        cudnn.deterministic = True
+        cudnn.benchmark = False
+    else:  # faster, less reproducible
+        cudnn.deterministic = False
+        cudnn.benchmark = True
 
 
 def train(args):
@@ -109,4 +119,5 @@ def train(args):
 
 if __name__ == "__main__":
     args = parse_args()
+    init_seeds(0, False)
     train(args)

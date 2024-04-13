@@ -39,6 +39,15 @@ def print_rank_0(info, rank):
         logging = "Rank {}: {}".format(rank, info)
         print(logging)
 
+def init_seeds(seed,cuda_deterministic=True):
+    torch.manual_seed(seed)
+    # Speed-reproducibility tradeoff https://pytorch.org/docs/stable/notes/randomness.html
+    if cuda_deterministic:  # slower, more reproducible
+        cudnn.deterministic = True
+        cudnn.benchmark = False
+    else:  # faster, less reproducible
+        cudnn.deterministic = False
+        cudnn.benchmark = True
 
 def train(args):
     # 构建模型及训练数据集
@@ -118,7 +127,8 @@ def train(args):
             progress_bar.update(1)
             progress_bar.set_description_str(f'Epoch{epoch}')
             progress_bar.set_postfix(loss=loss.item())
-
+        
+        dist.barrier() #阻塞进程,保证所有的进程都完成了1轮的训练,再进行保存
         if int(os.environ["RANK"]) == args.logging_rank:
             per_epoch_model_output = os.path.join(output_dir, 'epoch' + str(epoch+1))
             printlog("saving model in " + per_epoch_model_output)
@@ -131,4 +141,6 @@ def train(args):
 
 if __name__ == "__main__":
     args = parse_args()
+    rank = torch.distributed.get_rank()
+    init_seeds(1 + rank, False)
     train(args)
