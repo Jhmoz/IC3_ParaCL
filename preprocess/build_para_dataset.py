@@ -5,7 +5,7 @@ import random
 
 
 class Args:
-    para_file_name = "para_pairs.json"
+    para_file_name = "para_pairs_v2.json"
     work_dir = "./output"
     save_dir = "../data"
     templates = {
@@ -13,6 +13,8 @@ class Args:
         3: "{}的{}中的{}",
         4: "{}的{}中，{}的{}"
     }
+    output_file_name = "instruction_para_v2.json"
+    interval_len = 1000
 
 
 def build_positive_instruction(pairs):
@@ -110,9 +112,9 @@ def build_negative_sample(pairs, instructions, instructions_tree):
     for i in tqdm(range(len(instructions)), desc="searching negative candidates"):
         left_title, right_title = [], []
         if i > 0:
-            left_title = left_search(instructions[:i], instructions[i])
+            left_title = left_search(instructions[i - Args.interval_len:i], instructions[i])
         if i < len(instructions) - 1:
-            right_title = right_search(instructions[i + 1:], instructions[i])
+            right_title = right_search(instructions[i + 1: i + 1 + Args.interval_len], instructions[i])
         negative_candidates = left_title + right_title
         # 下面抽样的过程中没有去掉hard negative candidates中的重复项，是希望能有一个按出现频率的抽样结果
         if negative_candidates != []:
@@ -130,5 +132,5 @@ if __name__ == "__main__":
     build_positive_instruction(pairs)
     instructions, instructions_tree = build_instructions(pairs)
     build_negative_sample(pairs, instructions, instructions_tree)
-    with open(os.path.join(Args.save_dir, "instruction_para.json"), "w") as f:
+    with open(os.path.join(Args.save_dir, Args.output_file_name), "w") as f:
         json.dump(pairs, f, indent=4)

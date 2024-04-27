@@ -3,10 +3,11 @@ import os
 from tqdm import tqdm
 
 class Args:
-    para_file_name = "para_dict_fixed.json"
-    tag_file_name = "tag&summary_dict.json"
-    work_dir = "../baike"
+    para_file_name = "para_dict_v2.json"
+    tag_file_name = "tag_summary_v2.json"
+    work_dir = "./output"
     save_dir = "./output"
+    output_file = "para_pairs_v2.json"
 
 paras = json.load(open(os.path.join(Args.work_dir, Args.para_file_name), "r"))
 tags = json.load(open(os.path.join(Args.work_dir, Args.tag_file_name), "r"))
@@ -81,7 +82,7 @@ def batch_extract(paras):
 
 def save_files(to_save: set):
     print("title counts: {}".format(len(to_save)))
-    with open(os.path.join(Args.save_dir, "para_pairs.json"), "w", encoding="utf-8") as f:
+    with open(os.path.join(Args.save_dir, Args.output_file), "w", encoding="utf-8") as f:
         json.dump(to_save, f, indent=4)
 
 
